@@ -22,13 +22,22 @@ export class UserService {
                 email: data.email,
                 password: data.password,
             }).pipe(
-                tap(res => res),
+                tap((res: any) => {
+                    if (res && res.status === 200 && res.token) {
+                        localStorage.setItem('jwt_token', res.token);
+                        localStorage.setItem('user_id', res.data.id);
+                        localStorage.setItem('user_email', res.data.email);
+                        if (res.data.name) {
+                            localStorage.setItem('user_name', res.data.name);
+                        }
+                    }
+                }),
                 map(err => err)
             );
         }else{
             this.utility.hideLoading();
             this.network.toastNetworkOffline();
-            return throwError("No internet connection");
+            return throwError(() => new Error("No internet connection"));
         }
     }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../environments/environment';
 
 export interface UserProfile { name: string; email: string; greeting: string; avatarUrl: string; }
@@ -34,6 +34,11 @@ export class ExpenseService {
 
   constructor(private storage: Storage, private http: HttpClient) {
     this.initDatabase();
+  }
+
+  private getAuthHeaders() {
+    const token = localStorage.getItem('jwt_token') || '';
+    return { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) };
   }
 
   async initDatabase() {
@@ -149,8 +154,8 @@ export class ExpenseService {
     if (!this.currentUserId) return;
 
     try {
-      const resetUrl = `${environment.apiUrl}sync.php?action=reset&user_id=${this.currentUserId}`;
-      await lastValueFrom(this.http.post(resetUrl, {}));
+      const resetUrl = `${environment.apiUrl}sync.php?action=reset`;
+      await lastValueFrom(this.http.post(resetUrl, {}, this.getAuthHeaders()));
     } catch (error) {}
 
     this.rawTransactions = [];
@@ -181,8 +186,8 @@ export class ExpenseService {
     if (!this.currentUserId) return;
     try {
       const lastSync = localStorage.getItem('last_sync_' + this.currentUserId) || '2000-01-01 00:00:00';
-      const pullUrl = `${environment.apiUrl}sync.php?action=pull&user_id=${this.currentUserId}&last_sync=${lastSync}`;
-      const pullResponse: any = await lastValueFrom(this.http.get(pullUrl));
+      const pullUrl = `${environment.apiUrl}sync.php?action=pull&last_sync=${lastSync}`;
+      const pullResponse: any = await lastValueFrom(this.http.get(pullUrl, this.getAuthHeaders()));
       if (pullResponse.status === 200 && pullResponse.data) {
         this.mergeIncomingData(pullResponse.data);
         localStorage.setItem('last_sync_' + this.currentUserId, pullResponse.server_time);
@@ -204,8 +209,8 @@ export class ExpenseService {
           avatarUrl: currentProfile.avatarUrl === 'assets/nopic.svg' ? null : currentProfile.avatarUrl
         }
       };
-      const pushUrl = `${environment.apiUrl}sync.php?action=push&user_id=${this.currentUserId}`;
-      await lastValueFrom(this.http.post(pushUrl, payload));
+      const pushUrl = `${environment.apiUrl}sync.php?action=push`;
+      await lastValueFrom(this.http.post(pushUrl, payload, this.getAuthHeaders()));
     } catch (error) {}
   }
 
