@@ -237,6 +237,8 @@
 .icon-grid-item.active { background: rgba(var(--ion-color-primary-rgb), 0.1); border-color: var(--ion-color-primary); }
 .icon-grid-item.active ion-icon { color: var(--ion-color-primary); }
 
+.empty-state-container { display: flex; align-items: center; justify-content: center; height: 200px; text-align: center; font-style: italic; opacity: 0.8; }
+
 html.ion-palette-dark {
   .massive-title-input { border-bottom-color: rgba(255, 255, 255, 0.1); }
   .massive-name-input { border-bottom-color: rgba(255, 255, 255, 0.1); }

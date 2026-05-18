@@ -21,23 +21,33 @@
     <ion-button fill="clear" (click)="nextDay()"><ion-icon name="chevron-forward"></ion-icon></ion-button>
   </div>
 
-  <ion-list lines="none">
-    <ion-item class="transaction-item" *ngFor="let trx of filteredTransactions$ | async" button (click)="openTransactionOptions(trx)">
-      <div slot="start" class="icon-box" [ngClass]="trx.type === 'expense' ? 'danger-box' : (trx.type === 'income' ? 'success-box' : 'tertiary-box')">
-        <ion-icon [name]="trx.type === 'transfer' ? 'swap-horizontal' : trx.categoryIcon"></ion-icon>
-      </div>
-      <ion-label class="trx-content">
-        <h2>{{ trx.title }}</h2>
-        <p class="trx-meta">{{ trx.type === 'transfer' ? trx.walletName + ' ➔ ' + trx.toWalletName : trx.categoryName }}</p>
-        <span class="time-text">{{ trx.date | date:'HH:mm' }}</span>
-      </ion-label>
-      <div slot="end" class="trx-actions">
-        <span class="price" [ngClass]="trx.type === 'expense' ? 'color-danger' : (trx.type === 'income' ? 'color-success' : 'color-medium')">
-          {{ trx.type === 'expense' ? '-' : (trx.type === 'income' ? '+' : '') }}{{ trx.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}
-        </span>
-      </div>
-    </ion-item>
-  </ion-list>
+  <ng-container *ngIf="filteredTransactions$ | async as trxList">
+    <ion-list lines="none" *ngIf="trxList.length > 0; else emptyState">
+      <ion-item class="transaction-item" *ngFor="let trx of trxList" button (click)="openTransactionOptions(trx)">
+        <div slot="start" class="icon-box" [ngClass]="trx.type === 'expense' ? 'danger-box' : (trx.type === 'income' ? 'success-box' : 'tertiary-box')">
+          <ion-icon [name]="trx.type === 'transfer' ? 'swap-horizontal' : trx.categoryIcon"></ion-icon>
+        </div>
+        <ion-label class="trx-content">
+          <h2>{{ trx.title }}</h2>
+          <p class="trx-meta">{{ trx.type === 'transfer' ? trx.walletName + ' ➔ ' + trx.toWalletName : trx.categoryName }}</p>
+          <span class="time-text">{{ trx.date | date:'HH:mm' }}</span>
+        </ion-label>
+        <div slot="end" class="trx-actions">
+          <span class="price" [ngClass]="trx.type === 'expense' ? 'color-danger' : (trx.type === 'income' ? 'color-success' : 'color-medium')">
+            {{ trx.type === 'expense' ? '-' : (trx.type === 'income' ? '+' : '') }}{{ trx.amount | currency:((currency$ | async) || 'IDR'):'symbol':'1.0-0':(locale$ | async) || 'id-ID' }}
+          </span>
+        </div>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="empty-state-container">
+      <ion-text color="medium">
+        <p>{{ t.NO_TRANSACTION }}</p>
+      </ion-text>
+    </div>
+  </ng-template>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button (click)="openAddModal()"><ion-icon name="add"></ion-icon></ion-fab-button>
